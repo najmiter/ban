@@ -1,7 +1,9 @@
+#include "src/ban.hpp"
 #include <iostream>
 
+using namespace Ban;
+
 auto main() -> int {
-    std::cout << "Hello, World!" << " "
-              << b(123124231232842398429348290382904890234890238490238904902390)
-              << std::endl;
+    Bassn ban1(b(123));
+    std::println("Input '123': {}", ban1);
 }
