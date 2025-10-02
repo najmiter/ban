@@ -33,7 +33,10 @@ template <std::size_t N = 256> class Bassn {
 
 namespace Ban {
 template <std::size_t N>
-Bassn<N>::Bassn(std::string_view input) : m_Data{decimal_to_binary(input)} {}
+Bassn<N>::Bassn(std::string_view input)
+    : /* probably the slowest shit possible but i didn't like that chunks thing
+         or whatever it is cool kids do */
+      m_Data{decimal_to_binary(input)} {}
 
 template <std::size_t N>
 inline std::string Bassn<N>::add_binary(std::string_view a,

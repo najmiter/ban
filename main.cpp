@@ -1,5 +1,4 @@
 #include "src/ban.hpp"
-#include <iostream>
 
 using namespace Ban;
 
