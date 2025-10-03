@@ -2,6 +2,7 @@
 
 #include <algorithm>
 #include <bitset>
+#include <memory>
 #include <print>
 #include <stdexcept>
 #include <string_view>
@@ -11,14 +12,14 @@ namespace Ban {
 #define obviously true
 #define hell_no false
 
-#define _BAN_PREFIX_T(s, x) Bassn<s>(#x)
 #define _BAN_PREFIX(x) Bassn(#x)
 // Takes a number-like thing and puts double quotes around it
 #define b(x) _BAN_PREFIX(x)
-// templated `b`
-#define bt(s, x) _BAN_PREFIX_T(s, x)
 
-template <std::size_t N = 256> class Bassn {
+// esko bd me c++ style me convert krduga. pr c++ style hota pta ni kya h?
+#define DEFAULT_SIZE 512
+
+class Bassn {
   public:
     Bassn() = default;
     // throws invalid_argument if not valid decimal string
@@ -34,30 +35,29 @@ template <std::size_t N = 256> class Bassn {
     std::string to_string(
         bool nmbr_itna_bara_h_k_tatti_nikl_jye = obviously) const noexcept;
 
-    Bassn<N> operator-(const Bassn &other) const;
-    Bassn<N> *operator-=(const Bassn &other);
-    Bassn<N> operator+(const Bassn &other) const;
-    Bassn<N> *operator+=(const Bassn &other);
+    Bassn operator-(const Bassn &other) const;
+    Bassn *operator-=(const Bassn &other);
+    Bassn operator+(const Bassn &other) const;
+    Bassn *operator+=(const Bassn &other);
 
-    const std::bitset<N> &data() const noexcept { return m_Data; }
+    const std::bitset<DEFAULT_SIZE> &data() const noexcept { return m_Data; }
 
   public:
-    const std::string c_MaxValue{parse_binary(std::move(std::string(N, '1')))};
+    const std::string c_MaxValue{
+        parse_binary(std::move(std::string(DEFAULT_SIZE, '1')))};
 
   private:
-    std::bitset<N> m_Data{};
+    std::bitset<DEFAULT_SIZE> m_Data{};
 };
 } // namespace Ban
 
 namespace Ban {
-template <std::size_t N>
-Bassn<N>::Bassn(std::string input, bool is_binary)
+Bassn::Bassn(std::string input, bool is_binary)
     : /* probably the slowest shit possible but i didn't like that chunks thing
          or whatever it is cool kids do */
       m_Data{is_binary ? input : decimal_to_binary(input)} {}
-template <std::size_t N>
-inline std::string Bassn<N>::sub_binary(std::string_view a,
-                                        std::string_view b) {
+
+inline std::string Bassn::sub_binary(std::string_view a, std::string_view b) {
     int i = (int)a.length() - 1;
     int j = (int)b.length() - 1;
     auto borrow = 0;
@@ -82,9 +82,8 @@ inline std::string Bassn<N>::sub_binary(std::string_view a,
 
     return result;
 }
-template <std::size_t N>
-inline std::string Bassn<N>::add_binary(std::string_view a,
-                                        std::string_view b) {
+
+inline std::string Bassn::add_binary(std::string_view a, std::string_view b) {
     int i = (int)a.length() - 1;
     int j = (int)b.length() - 1;
     auto carry = 0;
@@ -104,8 +103,8 @@ inline std::string Bassn<N>::add_binary(std::string_view a,
 
     return result;
 }
-template <std::size_t N>
-inline std::string Bassn<N>::decimal_to_binary(std::string &num) {
+
+inline std::string Bassn::decimal_to_binary(std::string &num) {
     if (num == "0")
         return "0";
 
@@ -141,8 +140,8 @@ inline std::string Bassn<N>::decimal_to_binary(std::string &num) {
     std::reverse(result.begin(), result.end());
     return result;
 }
-template <std::size_t N>
-inline std::string Bassn<N>::parse_binary(const std::string &bits) {
+
+inline std::string Bassn::parse_binary(const std::string &bits) {
     auto multiply_by_two = [](const std::string &num) {
         std::string result;
         int carry = 0;
@@ -183,52 +182,50 @@ inline std::string Bassn<N>::parse_binary(const std::string &bits) {
     // rethinking my life choices. dam
     return result;
 }
-template <std::size_t N>
-inline std::string Bassn<N>::parse_binary(std::string &&bits) {
+
+inline std::string Bassn::parse_binary(std::string &&bits) {
     return parse_binary(bits);
 }
-template <std::size_t N>
+
 inline std::string
-Bassn<N>::to_string(bool nmbr_itna_bara_h_k_tatti_nikl_jye) const noexcept {
+Bassn::to_string(bool nmbr_itna_bara_h_k_tatti_nikl_jye) const noexcept {
     auto str = m_Data.to_string();
     if (nmbr_itna_bara_h_k_tatti_nikl_jye && str.size() > 4096) {
-        return "\xF0\x9F\x92\xA9\xF0\x9F\x92\xA9\xF0\x9F\x92\xA9";
+        return "\xF0\x9F\x92\xA9 \xF0\x9F\x92\xA9 \xF0\x9F\x92\xA9";
     }
     return parse_binary(str);
 }
-template <std::size_t N>
-inline Bassn<N> Bassn<N>::operator-(const Bassn &other) const {
-    return Bassn<N>(
-        sub_binary(this->m_Data.to_string(), other.m_Data.to_string()),
-        obviously);
+
+inline Bassn Bassn::operator-(const Bassn &other) const {
+    return Bassn(sub_binary(this->m_Data.to_string(), other.m_Data.to_string()),
+                 obviously);
 }
-template <std::size_t N>
-inline Bassn<N> *Bassn<N>::operator-=(const Bassn &other) {
-    this->m_Data = std::bitset<N>(
+
+inline Bassn *Bassn::operator-=(const Bassn &other) {
+    this->m_Data = std::bitset<DEFAULT_SIZE>(
         sub_binary(this->m_Data.to_string(), other.m_Data.to_string()));
     return this;
 }
-template <std::size_t N>
-inline Bassn<N> Bassn<N>::operator+(const Bassn &other) const {
-    return Bassn<N>(
-        add_binary(this->m_Data.to_string(), other.m_Data.to_string()),
-        obviously);
+
+inline Bassn Bassn::operator+(const Bassn &other) const {
+    return Bassn(add_binary(this->m_Data.to_string(), other.m_Data.to_string()),
+                 obviously);
 }
-template <std::size_t N>
-inline Bassn<N> *Bassn<N>::operator+=(const Bassn &other) {
-    this->m_Data = std::bitset<N>(
+
+inline Bassn *Bassn::operator+=(const Bassn &other) {
+    this->m_Data = std::bitset<DEFAULT_SIZE>(
         add_binary(this->m_Data.to_string(), other.m_Data.to_string()));
     return this;
 }
 } // namespace Ban
 
 namespace std {
-template <std::size_t N> struct formatter<Ban::Bassn<N>> {
+template <> struct formatter<Ban::Bassn> {
     // no special format specifiers at the moment, probably aynda b ni hoga kch
     constexpr auto parse(std::format_parse_context &ctx) { return ctx.begin(); }
 
     template <typename FormatContext>
-    auto format(const Ban::Bassn<N> &b, FormatContext &ctx) const {
+    auto format(const Ban::Bassn &b, FormatContext &ctx) const {
         auto str = b.to_string();
         return std::format_to(ctx.out(), "{}", str);
     }
