@@ -1,6 +1,6 @@
 CXX = g++
 CXXFLAGS = -std=c++23
-SOURCE = main.cpp
+SOURCE = main.cpp src/ban.cpp
 TARGET = main
 
 all: $(TARGET)

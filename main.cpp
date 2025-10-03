@@ -1,5 +1,7 @@
 #include "src/ban.hpp"
 
+#include <print>
+
 using namespace Ban;
 
 auto main() -> int {
