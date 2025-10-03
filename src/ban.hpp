@@ -8,22 +8,23 @@
 #include <vector>
 
 namespace Ban {
-#define _BAN_PREFIX(x) #x
+#define _BAN_PREFIX(x) Bassn(#x)
 // Takes a number-like thing and puts double quotes around it
-// (wesy ak keystroke extra e h. pr thora asy lgta a jsy nmbr likh rhy hn.
-// to bs es liye)
 #define b(x) _BAN_PREFIX(x)
 
 template <std::size_t N = 256> class Bassn {
   public:
     Bassn() = default;
     // throws invalid_argument if not valid decimal string
-    Bassn(std::string input);
+    Bassn(std::string input, bool is_binary = false);
     ~Bassn() = default;
 
-    std::string add_binary(std::string_view, std::string_view);
+    std::string add_binary(std::string_view, std::string_view) const;
     std::string decimal_to_binary(std::string &);
     std::string to_string() const noexcept;
+
+    Bassn<N> operator+(const Bassn &other) const;
+    Bassn<N> *operator+=(const Bassn &other);
 
     const std::bitset<N> &data() const noexcept { return m_Data; }
 
@@ -34,14 +35,14 @@ template <std::size_t N = 256> class Bassn {
 
 namespace Ban {
 template <std::size_t N>
-Bassn<N>::Bassn(std::string input)
+Bassn<N>::Bassn(std::string input, bool is_binary)
     : /* probably the slowest shit possible but i didn't like that chunks thing
          or whatever it is cool kids do */
-      m_Data{decimal_to_binary(input)} {}
+      m_Data{is_binary ? input : decimal_to_binary(input)} {}
 
 template <std::size_t N>
 inline std::string Bassn<N>::add_binary(std::string_view a,
-                                        std::string_view b) {
+                                        std::string_view b) const {
     int i = (int)a.length() - 1;
     int j = (int)b.length() - 1;
     auto carry = 0;
@@ -140,6 +141,17 @@ inline std::string Bassn<N>::to_string() const noexcept {
     // wesy agr yhi krna tha to itni conversions ki kya zrurt thi
     // rethinking my life choices. dam
     return result;
+}
+template <std::size_t N>
+inline Bassn<N> Bassn<N>::operator+(const Bassn &other) const {
+    return Bassn(add_binary(this->m_Data.to_string(), other.m_Data.to_string()),
+                 true);
+}
+template <std::size_t N>
+inline Bassn<N> *Bassn<N>::operator+=(const Bassn &other) {
+    this->m_Data = std::bitset<N>(
+        add_binary(this->m_Data.to_string(), other.m_Data.to_string()));
+    return this;
 }
 } // namespace Ban
 
