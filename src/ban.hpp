@@ -8,21 +8,31 @@
 #include <vector>
 
 namespace Ban {
+#define obviously true
+#define hell_no false
+
+#define _BAN_PREFIX_T(s, x) Bassn<s>(#x)
 #define _BAN_PREFIX(x) Bassn(#x)
 // Takes a number-like thing and puts double quotes around it
 #define b(x) _BAN_PREFIX(x)
+// templated `b`
+#define bt(s, x) _BAN_PREFIX_T(s, x)
 
 template <std::size_t N = 256> class Bassn {
   public:
     Bassn() = default;
     // throws invalid_argument if not valid decimal string
-    Bassn(std::string input, bool is_binary = false);
+    Bassn(std::string input, bool is_binary = hell_no);
     ~Bassn() = default;
 
-    std::string sub_binary(std::string_view, std::string_view) const;
-    std::string add_binary(std::string_view, std::string_view) const;
-    std::string decimal_to_binary(std::string &);
-    std::string to_string() const noexcept;
+    static std::string sub_binary(std::string_view, std::string_view);
+    static std::string add_binary(std::string_view, std::string_view);
+    static std::string decimal_to_binary(std::string &);
+    static std::string parse_binary(const std::string &);
+    static std::string parse_binary(std::string &&);
+
+    std::string to_string(
+        bool nmbr_itna_bara_h_k_tatti_nikl_jye = obviously) const noexcept;
 
     Bassn<N> operator-(const Bassn &other) const;
     Bassn<N> *operator-=(const Bassn &other);
@@ -31,8 +41,11 @@ template <std::size_t N = 256> class Bassn {
 
     const std::bitset<N> &data() const noexcept { return m_Data; }
 
+  public:
+    const std::string c_MaxValue{parse_binary(std::move(std::string(N, '1')))};
+
   private:
-    std::bitset<N> m_Data;
+    std::bitset<N> m_Data{};
 };
 } // namespace Ban
 
@@ -41,14 +54,10 @@ template <std::size_t N>
 Bassn<N>::Bassn(std::string input, bool is_binary)
     : /* probably the slowest shit possible but i didn't like that chunks thing
          or whatever it is cool kids do */
-      m_Data{is_binary ? input : decimal_to_binary(input)} {
-    std::println("bitset size = {}, this size = {}", sizeof(m_Data),
-                 sizeof(*this));
-}
-
+      m_Data{is_binary ? input : decimal_to_binary(input)} {}
 template <std::size_t N>
 inline std::string Bassn<N>::sub_binary(std::string_view a,
-                                        std::string_view b) const {
+                                        std::string_view b) {
     int i = (int)a.length() - 1;
     int j = (int)b.length() - 1;
     auto borrow = 0;
@@ -73,10 +82,9 @@ inline std::string Bassn<N>::sub_binary(std::string_view a,
 
     return result;
 }
-
 template <std::size_t N>
 inline std::string Bassn<N>::add_binary(std::string_view a,
-                                        std::string_view b) const {
+                                        std::string_view b) {
     int i = (int)a.length() - 1;
     int j = (int)b.length() - 1;
     auto carry = 0;
@@ -134,8 +142,7 @@ inline std::string Bassn<N>::decimal_to_binary(std::string &num) {
     return result;
 }
 template <std::size_t N>
-inline std::string Bassn<N>::to_string() const noexcept {
-    auto str = m_Data.to_string();
+inline std::string Bassn<N>::parse_binary(const std::string &bits) {
     auto multiply_by_two = [](const std::string &num) {
         std::string result;
         int carry = 0;
@@ -164,7 +171,7 @@ inline std::string Bassn<N>::to_string() const noexcept {
         return result;
     };
     std::string result = "0";
-    for (char bit : str) {
+    for (char bit : bits) {
         // shift left = multiply by 2
         result = multiply_by_two(result);
         // if bit = 1, add one
@@ -177,9 +184,23 @@ inline std::string Bassn<N>::to_string() const noexcept {
     return result;
 }
 template <std::size_t N>
+inline std::string Bassn<N>::parse_binary(std::string &&bits) {
+    return parse_binary(bits);
+}
+template <std::size_t N>
+inline std::string
+Bassn<N>::to_string(bool nmbr_itna_bara_h_k_tatti_nikl_jye) const noexcept {
+    auto str = m_Data.to_string();
+    if (nmbr_itna_bara_h_k_tatti_nikl_jye && str.size() > 4096) {
+        return "\xF0\x9F\x92\xA9\xF0\x9F\x92\xA9\xF0\x9F\x92\xA9";
+    }
+    return parse_binary(str);
+}
+template <std::size_t N>
 inline Bassn<N> Bassn<N>::operator-(const Bassn &other) const {
     return Bassn<N>(
-        sub_binary(this->m_Data.to_string(), other.m_Data.to_string()), true);
+        sub_binary(this->m_Data.to_string(), other.m_Data.to_string()),
+        obviously);
 }
 template <std::size_t N>
 inline Bassn<N> *Bassn<N>::operator-=(const Bassn &other) {
@@ -190,7 +211,8 @@ inline Bassn<N> *Bassn<N>::operator-=(const Bassn &other) {
 template <std::size_t N>
 inline Bassn<N> Bassn<N>::operator+(const Bassn &other) const {
     return Bassn<N>(
-        add_binary(this->m_Data.to_string(), other.m_Data.to_string()), true);
+        add_binary(this->m_Data.to_string(), other.m_Data.to_string()),
+        obviously);
 }
 template <std::size_t N>
 inline Bassn<N> *Bassn<N>::operator+=(const Bassn &other) {
