@@ -19,10 +19,13 @@ template <std::size_t N = 256> class Bassn {
     Bassn(std::string input, bool is_binary = false);
     ~Bassn() = default;
 
+    std::string sub_binary(std::string_view, std::string_view) const;
     std::string add_binary(std::string_view, std::string_view) const;
     std::string decimal_to_binary(std::string &);
     std::string to_string() const noexcept;
 
+    Bassn<N> operator-(const Bassn &other) const;
+    Bassn<N> *operator-=(const Bassn &other);
     Bassn<N> operator+(const Bassn &other) const;
     Bassn<N> *operator+=(const Bassn &other);
 
@@ -38,7 +41,38 @@ template <std::size_t N>
 Bassn<N>::Bassn(std::string input, bool is_binary)
     : /* probably the slowest shit possible but i didn't like that chunks thing
          or whatever it is cool kids do */
-      m_Data{is_binary ? input : decimal_to_binary(input)} {}
+      m_Data{is_binary ? input : decimal_to_binary(input)} {
+    std::println("bitset size = {}, this size = {}", sizeof(m_Data),
+                 sizeof(*this));
+}
+
+template <std::size_t N>
+inline std::string Bassn<N>::sub_binary(std::string_view a,
+                                        std::string_view b) const {
+    int i = (int)a.length() - 1;
+    int j = (int)b.length() - 1;
+    auto borrow = 0;
+    std::string result = "";
+
+    while (i >= 0 || j >= 0 || borrow) {
+        auto digitA = i >= 0 ? a[i] - '0' : 0;
+        auto digitB = j >= 0 ? b[j] - '0' : 0;
+
+        auto diff = digitA - digitB - borrow;
+        if (diff < 0) {
+            diff += 2;
+            borrow = 1;
+        } else {
+            borrow = 0;
+        }
+        result = std::to_string(diff) + result;
+
+        i--;
+        j--;
+    }
+
+    return result;
+}
 
 template <std::size_t N>
 inline std::string Bassn<N>::add_binary(std::string_view a,
@@ -143,9 +177,20 @@ inline std::string Bassn<N>::to_string() const noexcept {
     return result;
 }
 template <std::size_t N>
+inline Bassn<N> Bassn<N>::operator-(const Bassn &other) const {
+    return Bassn<N>(
+        sub_binary(this->m_Data.to_string(), other.m_Data.to_string()), true);
+}
+template <std::size_t N>
+inline Bassn<N> *Bassn<N>::operator-=(const Bassn &other) {
+    this->m_Data = std::bitset<N>(
+        sub_binary(this->m_Data.to_string(), other.m_Data.to_string()));
+    return this;
+}
+template <std::size_t N>
 inline Bassn<N> Bassn<N>::operator+(const Bassn &other) const {
-    return Bassn(add_binary(this->m_Data.to_string(), other.m_Data.to_string()),
-                 true);
+    return Bassn<N>(
+        add_binary(this->m_Data.to_string(), other.m_Data.to_string()), true);
 }
 template <std::size_t N>
 inline Bassn<N> *Bassn<N>::operator+=(const Bassn &other) {
